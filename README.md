@@ -6,17 +6,13 @@
   
 ### Analysis
 
-- Will you use data abstraction? How?
-  Yes
+- Data abstraction: 
   
-- Will you use recursion? How?
-  Yes. Reading sensors and writing/analyzing this information will be done in infinite loops.
+- Recursion: Reading sensors and writing/analyzing this information will be done in infinite loops.
   
 - Will you use map/filter/reduce? How? 
 
-- Will you use object-orientation? How?
-  Yes. For certain arduino control features involving objects to represent external sensors and their associated pins/ pin functionality.
-  Also for database interactivity, will need objects to represent the strings of plant/sensor information pulled from or put into database (using sqlite).
+- Object orientation: For certain arduino control features involving objects to represent external sensors and their associated pins/ pin functionality. Also for database interactivity, will need objects to represent the strings of plant/sensor information pulled from or put into database (using sqlite).
   
 - Will you use functional approaches to processing your data? How?
 
@@ -28,7 +24,7 @@
 
 ### External Technologies
 
-We will be using arduino sensors to obtain data and store in a database for analysis.
+We will be using an arduino microcontroller with sensors to obtain data and store in a database for analysis.
 
 
 ### Deliverable and Demonstration
