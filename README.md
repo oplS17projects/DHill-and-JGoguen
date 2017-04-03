@@ -5,7 +5,6 @@
   The project we are doing involves an arduino, sensors, plants, plots, and databases. Our program will control an arduino microcontroller with a few sensors for temperature, light, soil moisture, and humidity. These sensors will keep track of not only if you need to water the plant, but also provide an in depth analysis on trends in water consumption of a particular plant type and age. Relation between the consumption of water and environmental variables will provide a better determination for how much water you can expect your plant to consume. Database entries can be made, containing information on the watering needs for certain types of plants in certain conditions.
   
 ### Analysis
-Explain what approaches from class you will bring to bear on the project.
 
 - Will you use data abstraction? How?
   Yes
@@ -28,23 +27,9 @@ Explain what approaches from class you will bring to bear on the project.
 - Will you use lazy evaluation approaches?
 
 ### External Technologies
-You are encouraged to develop a project that connects to external systems. For example, this includes systems that:
-
-- retrieve information or publish data to the web
-- generate or process sound
-- control robots or other physical systems
-- interact with databases
 
 We will be using arduino sensors to obtain data and store in a database for analysis.
 
-### Data Sets or other Source Materials
-If you will be working with existing data, where will you get those data from? (Dowload from a website? Access in a database? Create in a simulation you will build? ...)
-
-How will you convert your data into a form usable for your project?  
-
-If you are pulling data from somewhere, actually go download it and look at it before writing the proposal. Explain in some detail what your plan is for accomplishing the necessary processing.
-
-If you are using some other starting materials, explain what they are. Basically: anything you plan to use that isn't code.
 
 ### Deliverable and Demonstration
 
@@ -54,8 +39,7 @@ If you are using some other starting materials, explain what they are. Basically
 
 
 ### Evaluation of Results
-How will you know if you are successful? 
-If you include some kind of _quantitative analysis,_ that would be good.
+If we create sensors that accurately read information, store and analyze that data effectively, and output appropriate alerts and results, we have created a succesful project.
 
 ## Architecture Diagram
 
@@ -66,21 +50,18 @@ Create several paragraphs of narrative to explain the pieces and how they intero
 ## Schedule
 
 ### First Milestone (Sun Apr 9)
-Which portion of the work will be completed (and committed to Github) by this day? 
+Initial implementation of arduino sensors and functionality. Outline structure of data analysis.
 
 ### Second Milestone (Sun Apr 16)
-Which portion of the work will be completed (and committed to Github) by this day?  
+Create databases of information from sensors. Create plots from information.
 
 ### Public Presentation (Mon Apr 24, Wed Apr 26, or Fri Apr 28 [your date to be determined later])
-What additionally will be completed before the public presentation?
+Implement user alert functionality. 
 
 ## Group Responsibilities
-Here each group member gets a section where they, as an individual, detail what they are responsible for in this project. Each group member writes their own Responsibility section. Include the milestones and final deliverable.
-
-Please use Github properly: each individual must make the edits to this file representing their own section of work.
 
 ### James Goguen @jamesin67895
-will write the....
+Will work on the ardunio sensors and databasing the information.
 
 ### Devon Hills @devonjhills
-will work on...
+Will work on data analysis with plots and data processing.
