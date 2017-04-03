@@ -2,18 +2,25 @@
 
 ### Statement
 Describe your project. Why is it interesting? Why is it interesting to you personally? What do you hope to learn? 
-
+  
+  The project we are doing involves an arduino, sensors, plants, plots, and databases. Our program will control an arduino microcontroller with a few sensors for temperature, light, soil moisture, and humidity. These sensors will keep track of not only if you need to water the plant, but also provide an in depth analysis on trends in water consumption of a particular plant type and age. Relation between the consumption of water and environmental variables will provide a better determination for how much water you can expect your plant to consume. Database entries can be made, containing information on the watering needs for certain types of plants in certain conditions.
+  
 ### Analysis
 Explain what approaches from class you will bring to bear on the project.
 
 Be explicit about the techiques from the class that you will use. For example:
 
 - Will you use data abstraction? How?
+  ... abstract question... Devawn ?
 - Will you use recursion? How?
+  Reading sensors and writing/analyzing this information will be done in infinite loops.
 - Will you use map/filter/reduce? How? 
 - Will you use object-orientation? How?
+  For certain arduino control features involving objects to represent external sensors and their associated pins/ pin functionality.
+  Also for database interactivity, will need objects to represent the strings of plant/sensor information pulled from or put into database (using sqlite).
 - Will you use functional approaches to processing your data? How?
 - Will you use state-modification approaches? How? (If so, this should be encapsulated within objects. `set!` pretty much should only exist inside an object.)
+
 - Will you build an expression evaluator, like we did in the symbolic differentatior and the metacircular evaluator?
 - Will you use lazy evaluation approaches?
 
@@ -43,9 +50,14 @@ If you are using some other starting materials, explain what they are. Basically
 ### Deliverable and Demonstration
 Explain exactly what you'll have at the end. What will it be able to do at the live demo?
 
+  The live demo will likely be much less interactive and much more going through a demonstration/ example of how one may set up and begin the plant monitoring system. 
+
 What exactly will you produce at the end of the project? A piece of software, yes, but what will it do? Here are some questions to think about (and answer depending on your application).
+  
+  The sophtware/ hardware produced will be instantly applicative in anyones back yard. (If we also get include a solenoid valve and hose, could extend it to irrigation system)
 
 Will it run on some data, like batch mode? Will you present some analytical results of the processing? How can it be re-run on different source data?
+
 
 Will it be interactive? Can you show it working? This project involves a live demo, so interactivity is good.
 
