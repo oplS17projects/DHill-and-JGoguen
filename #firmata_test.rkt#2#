@@ -8,7 +8,9 @@
 (require "firmata.rkt")
 
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (define frame (new frame%
                    [label "Example"]
                    [width 600]
@@ -42,7 +44,7 @@
      [label "Current Soil Moisture: "])
 (new message%
      [parent curr-exp-time-panel]
-     [label "Expected time untill Water: "])
+     [label "Expected time until Water: "])
 
 
 (define curr-time-msg (new message%
@@ -63,19 +65,29 @@
 (define avg-temp-panel (new horizontal-panel%
                        [parent avg-readings]))
 
+(define avg-light-panel (new horizontal-panel%
+                       [parent avg-readings]))
 
 (define avg-time-panel (new horizontal-panel%
                         [parent avg-readings]))
 (new message%
      [parent avg-temp-panel]
      [label "AvgTemp: "])
-                     
+
+(new message%
+     [parent avg-light-panel]
+     [label "AvgLight: "])
+
 (new message%
      [parent avg-time-panel]
      [label "CycleTime: "])
 
 (define avg-temp-msg (new message%
                       [parent avg-temp-panel]
+                      [label "nothing...."]))
+
+(define avg-light-msg (new message%
+                      [parent avg-light-panel]
                       [label "nothing...."]))
 
 (define avg-time-msg (new message%
@@ -91,11 +103,14 @@
 
 ;; opens up connection to database
 (define sqlc
-  (sqlite3-connect #:database "test2.db" ))
+  (sqlite3-connect #:database "test3.db" ))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;INITIALIZE NEW DB TABLE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;INITIALIZE NEW DB TABLE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; DYNAMIC SQL STATEMENT STRINGS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;create-table statement
 (define start "CREATE TABLE ")
 (define end " (avg_temp_range integer, avg_time integer NOT NULL, time_count integer)")
 (define table_name (make-string 12))
@@ -103,28 +118,58 @@
 (print "Please Enter a (exactly) 12 letter table name (first = char, [2-8] = char || digit )")
 (read-string! table_name (current-input-port) 0 12)
 
-(define data_db (string-append start table_name end))
+(define (create_data_db i)
+  (if (= i 11)
+      (string-append start table_name end)
+      (string-append start table_name (number->string i) end)))
 
+
+;;INSERT INTO ,table_name(i) (avg_temp_range, avg_time, time_count) VALUES ( *?range-row-val?* , 0, 0)
+(define (init-start i) (string-append "INSERT INTO " table_name (number->string i)))
+(define init-mid " (avg_temp_range, avg_time, time_count) VALUES (" )
+(define init-end ", 0, 0)")
+
+;;UPDATE evap_time_avg
+
+
+;;UPDATE ,table_name(i)  SET avg_time = *?avg_time?* , time_count = *?time_count?* WHERE (avg_temp_range = *?temp_range?* ) 
+(define (update-start i) (string-append "UPDATE " table_name (number->string i) " SET avg_time = "))
+(define update-mid ", time_count = ")
+(define update-where " WHERE (avg_temp_range = ")
+
+;;SELECT *? avg_time || time_count ?* FROM ,table_name(i) WHERE (avg_temp_range = *?temp_range?* )
+(define select-start "SELECT ")
+(define (select-temp-range-end i) (string-append " FROM " table_name (number->string i) " WHERE (avg_temp_range = "))
+
+(define (init-loop)
+        (define (help i)
+          (cond ((= i 11) (print "Finish init 0-10\n"))
+                (else
+                 (query-exec sqlc (create_data_db i))
+                 (query-exec sqlc            (string-append (init-start i) init-mid "0" init-end))
+                 (query-exec sqlc            (string-append (init-start i) init-mid "1" init-end))
+                 (query-exec sqlc            (string-append (init-start i) init-mid "2" init-end))
+                 (query-exec sqlc            (string-append (init-start i) init-mid "3" init-end))
+                 (query-exec sqlc            (string-append (init-start i) init-mid "4" init-end))
+                 (query-exec sqlc            (string-append (init-start i) init-mid "5" init-end))
+                 (query-exec sqlc            (string-append (init-start i) init-mid "6" init-end))
+                 (query-exec sqlc            (string-append (init-start i) init-mid "7" init-end))
+                 (query-exec sqlc            (string-append (init-start i) init-mid "8" init-end))
+                 (query-exec sqlc            (string-append (init-start i) init-mid "9" init-end))
+                 (query-exec sqlc            (string-append (init-start i) init-mid "10" init-end))
+                 (help (+ i 1))))
+          )
+        (help 0)
+  )
+;;init the database
 (if (table-exists? sqlc table_name)
     (begin (print "TABLE-EXISTS!\n"))
     (begin 
-
-      (query-exec sqlc data_db)
-
-      ;; range i = [ (i*10) -> ((i+1)*10) ]
-      (query-exec sqlc            (insert #:into data_db #:set [avg_temp_range 0]  [avg_time 0] [time_count 0]))
-      (query-exec sqlc            (insert #:into data_db #:set [avg_temp_range 1]  [avg_time 0] [time_count 0]))
-      (query-exec sqlc            (insert #:into data_db #:set [avg_temp_range 2]  [avg_time 0] [time_count 0]))
-      (query-exec sqlc            (insert #:into data_db #:set [avg_temp_range 3]  [avg_time 0] [time_count 0]))
-      (query-exec sqlc            (insert #:into data_db #:set [avg_temp_range 4]  [avg_time 0] [time_count 0]))
-      (query-exec sqlc            (insert #:into data_db #:set [avg_temp_range 5]  [avg_time 0] [time_count 0]))
-      (query-exec sqlc            (insert #:into data_db #:set [avg_temp_range 6]  [avg_time 0] [time_count 0]))
-      (query-exec sqlc            (insert #:into data_db #:set [avg_temp_range 7]  [avg_time 0] [time_count 0]))
-      (query-exec sqlc            (insert #:into data_db #:set [avg_temp_range 8]  [avg_time 0] [time_count 0]))
-      (query-exec sqlc            (insert #:into data_db #:set [avg_temp_range 9]  [avg_time 0] [time_count 0]))
-      (query-exec sqlc            (insert #:into data_db #:set [avg_temp_range 10] [avg_time 0] [time_count 0]))
+      (query-exec sqlc (create_data_db 11)) ;; just so can check table exists in future
+      (init-loop)
       )
     )
+
 (send frame set-label (string-append "TABLE: " table_name))  
 
 (send frame show #t)
@@ -137,55 +182,65 @@
 (define INPUT 1)
 
 (define min-moisture-threshold 100)
-(define tmp_temp_avg 0)
 (define sum_temp_readings_ 0)
 (define previous_timestamp_ (current-seconds))
 ;;(define current_timestamp_ (current-seconds))
 (define temp_reading_count_ 0)
 (define cycle_tics_ 0) ;; just so can get an idea of average tics -> milliseconds
-
+(define cycle_light_ 0)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; SETUP THE PINS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (report-analog-pin! 0 1) ;; pin 0 = temp
 (report-analog-pin! 1 1) ;; pin 1 = soil_moisture
-;;(report-analog-pin! 2 1)
+(report-analog-pin! 2 1) ;; pin 2 = light
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; DATABASE FUNCTIONS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;in
 ;; resets all columns (avg_tmp_range = [ 0 -> 10 ] ) to [avg_time = 0] [time_count = 0]
 (define (reset-db)
-  (query-exec sqlc (update data_db #:set [avg_time 0] [time_count 0])))
+  (define (help i)
+    (cond ((= i 11) (print "Finish init 0-10\n"))
+          (else
+           (query-exec sqlc  (string-append (update-start i) "0" update-mid "0")  )               
+           (help (+ i 1))))
+    )
+  (help 0)
+  )
 
 ;;returns time_avg for database column where avg_temp_range = range
-(define (get-range-time-avg range)
-  (query-value sqlc (select avg_time #:from data_db #:where (= avg_temp_range ,range ))))
+(define (get-range-time-avg lite_i range)
+  (query-value sqlc (string-append select-start "avg_time" (select-temp-range-end lite_i) (number->string range) ")")))
 
 ;;returns number of times averaged so far for database column where avg_temp_range = range
-(define (get-range-time-count range)
-  (query-value sqlc (select time_count #:from data_db #:where (= avg_temp_range ,range ))))
+(define (get-range-time-count lite_i range)
+  (query-value sqlc (string-append select-start "time_count" (select-temp-range-end lite_i) (number->string range) ")")))
 
 ;;updates the avg_time between waterings for the avg_temp_range = curr_temp_range 
-(define (update-current-db curr_temp_range time_)
-  (let ((times_avged   (get-range-time-count curr_temp_range))
+(define (update-current-db curr_temp_range time_ lite_i)
+  (let ((times_avged   (get-range-time-count curr_temp_range lite_i))
         )
-    (let (( range_time_total (* times_avged (get-range-time-avg curr_temp_range))) 
+    (let (( range_time_total (* times_avged (get-range-time-avg curr_temp_range lite_i))) 
           ( times_avged_inc (+ times_avged 1))
           )
       (let (( new_avg (/ (+ range_time_total time_) times_avged_inc)) ;; avg_time[n+1] = ((avg_time[n] * n) + time)  /  (n+1)
             ) 
       (query-exec sqlc
-                  (update data_db #:set [avg_time ,new_avg] [time_count ,times_avged_inc] #:where (= avg_temp_range ,curr_temp_range)))
+                  (string-append (update-start lite_i) (number->string new_avg) update-mid (number->string times_avged_inc) update-where (number->string curr_temp_range) ")"))
       ))))
 
 ;;dumps db entries for avg_temp_range = [0 -> 10]
-(define (dump-current-db)
+(define (dump-current-db lite_i)
   (query sqlc
-       (select avg_temp_range avg_time time_count #:from data_db ))
+       (string-append select-start "avg_time time_count" (select-temp-range-end lite_i) (number->string range) ")"))
   )
+
+;;function for plotting temp-range 0 - 10
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; SENSORS FUNTIONS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -197,9 +252,13 @@
 (define (curr-temp-f)
  (+ (/ ( * (curr-temp-c) 9) 5) 32 ))
 
-;;SOIL MOISTURE: analog_reading (relative)
+;;SOIL MOISTURE: analog reading (relative)
 (define (curr-soil-moisture)
   (read-analog-pin 1))
+
+;;AMBIENT LIGHT: analog reading (relative)
+(define (curr-light)
+  (read-analog-pin 2))
 
 ;;quick set of avg's for temp
 (define (quick-avg-temp y)
@@ -219,16 +278,28 @@
     )
   (helper y 0))
 
+;;quick set of avgs for ambient light
+(define (quick-avg-light y)
+  (define (helper x tmp_avg_light)
+    (if (= x 0)
+        (/ tmp_avg_light y)
+        (helper ( - x 1) (+ tmp_avg_light (curr-light))))
+    )
+  (helper y 0))
+
 ;; UPDATE global values for a single temp sensor-reading / quick-avg for temp sensor
 (define (update-globals)
   (begin
-    (set! sum_temp_readings_ (+ sum_temp_readings_ (quick-avg-temp 5))) ;; avg = ((avg * #readings) + new_reading)
+    (set! sum_temp_readings_ (+ sum_temp_readings_ (quick-avg-temp 5)));; avg = ((avg * #readings) + new_reading)
+    (set! cycle_light_ (+ cycle_light_ (quick-avg-light 5)))
     (set! temp_reading_count_ (+ temp_reading_count_ 1))
     (set! cycle_tics_ (+ cycle_tics_ 1))
     (display "GLOBALS:\n")
     (display "sum_temp_readings: ") (display sum_temp_readings_ )
     (display "\ntemp_reading_count: ") (display temp_reading_count_)
     (display "\nwater-soil-moisture-level: ") (display (curr-soil-moisture))
+    (display "\nTOTAL-ambient-light-level: ") (display cycle_light_)
+    (display "\nCURRENT-ambient-light-level: ") (display (curr-light))
     (display "\nprevious_timestamp: ") (display previous_timestamp_)
     (display "\nElapsed Time: ") (display ( - (current-seconds) previous_timestamp_))
     (display "\ncycle-tics: ") (display cycle_tics_) 
@@ -236,22 +307,32 @@
 
 ;;called when water-soil-moisture is below given level
 (define (complete-water-cycle)
-  (let ((sum_range sum_temp_readings_))
-    (cond
-      ((> sum_temp_readings_ 0 )
-       (begin
-         (display "\n Updating database with values \n sum_temp_readings: ") (display sum_temp_readings_)
-         (display "temp_reading_count: ") (display temp_reading_count_) (display "::::::::::::\n\n")
-         (update-current-db (round (/ (/ sum_range temp_reading_count_) 10)) (- (current-seconds) previous_timestamp_)) ))
-      (else (display "sum_readings 0\n")))))
+  (let ((sum_range sum_temp_readings_)
+        (light_range cycle_light_))
+    (if (= sum_range 0)
+        (display "SUM RANGE 0\n")
+        (set! sum_range (round (/ (/ sum_range temp_reading_count_) 10)))
+        )
+    (if (= light_range 0)
+        (display "SUM LIGHT 0\n")
+        (set! light_range (round (/ (/ light_range temp_reading_count_) 100)))
+        )
+    (begin
+      (display "\n Updating database with values \n sum_temp_readings: ") (display sum_temp_readings_)
+      (display "temp_reading_count: ") (display temp_reading_count_) (display "::::::::::::\n\n")
+      (update-current-db sum_range (- (current-seconds) previous_timestamp_) light_range )
+      )
+    )
+  )
+    
 
 ;;loops indefinately, if soil moisture < min_moisture -> complete water cycle, else -> read & update values, continue
 (define (sensor-loop)
   (cond
     ( ( > cycle_tics_ 50) (display "Completed: " ) (display cycle_tics_) (display " Cycles\n") (set! cycle_tics_ 0) (display "********************\n*******************\n") ) 
     ( ( > min-moisture-threshold (quick-avg-soil 5) ) (set! cycle_tics_ 0) (complete-water-cycle) (update-globals)
-                                                      (set-frame-header "cwc") (send-avg-temp) (send-cycle-time)
-                                                      (set! previous_timestamp_ (current-seconds)) (set! sum_temp_readings_ 0) (set! temp_reading_count_ 0) (sleep 10) (sensor-loop) )
+                                                      (set-frame-header "cwc") (send-avg-temp) (send-avg-light) (send-cycle-time)
+                                                      (set! previous_timestamp_ (current-seconds)) (set! cycle_light_ 0) (set! sum_temp_readings_ 0) (set! temp_reading_count_ 0) (sleep 10) (sensor-loop) )
     ( else (update-globals)
            (set-frame-header "other") (send-curr-moisture) (send-cycle-time) (send-curr-exp-time) (sleep 10) (sensor-loop) )
     ))
@@ -278,6 +359,14 @@
       )
   )
 
+;;avg-temp-msg update
+(define (send-avg-light)
+  (if (equal? cycle_light_ 0)
+      ( send avg-light-msg set-label (number->string cycle_light_) )
+      ( send avg-light-msg set-label (number->string (round (/ (/ cycle_light_ temp_reading_count_) 100))) )
+      )
+  )
+
 ;;curr-moisuture-msg update
 (define (send-curr-moisture)
   ( send curr-moisture-msg set-label (number->string (curr-soil-moisture)) )
@@ -286,9 +375,17 @@
 
 ;;curr-expected-time update
 (define (send-curr-exp-time)
-  (if (equal? sum_temp_readings_ 0)
-      (send curr-exp-time-msg set-label (number->string (- (get-range-time-avg 0) (- (current-seconds) previous_timestamp_))))    
-      (send curr-exp-time-msg set-label (number->string (- (get-range-time-avg (round (/ (/ sum_temp_readings_ temp_reading_count_) 10))) (- (current-seconds) previous_timestamp_))))
+  (let ((sum_range sum_temp_readings_)
+        (light_range cycle_light_))
+    (if (= sum_range 0)
+        (display "SUM RANGE 0\n")
+        (set! sum_range (round (/ (/ sum_range temp_reading_count_) 10)))
+        )
+    (if (= light_range 0)
+        (display "SUM RANGE 0\n")
+        (set! light_range (round (/ (/ light_range temp_reading_count_) 100)))
+        )
+      (send curr-exp-time-msg set-label (number->string (- (get-range-time-avg light_range sum_range) (- (current-seconds) previous_timestamp_)))) 
       ))
       
 ;;cycle-time update  
@@ -307,9 +404,10 @@
                          )
                        ]
              )
+
 ;;;;;;;;;;;;;;;; ~~ MAIN ~~ ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;(reset-db)
+(reset-db)
 
 ;;sensor thread to run // to gui 
 (define sensor-thread
