@@ -103,9 +103,164 @@
 
 
 
-;;sample call
-(plot-cycle cycle_lights "test X" "test Y" 100)
+;;sample calls
+
+;(plot-cycle cycle_temperatures "Time" "Temperature" 100)
+;(plot-cycle cycle_moistures "Time" "Moisture" 1500)
+;(plot-cycle cycle_lights "Time" "Light" 100)
 
 
 
+
+
+
+
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; list fill functions
+
+
+
+;;this first function requires use of database....
+
+;;it makes a list of the avg_times for each avg_temp_range (0 - 10) for
+;;a given light level (lite_i)....
+
+;;if there are NO readings for some avg_temp_range i.... then the
+;;avg_time is 0, because any temp_range should have at least time 10
+
+
+#|
+(define (temp-times->partial-list lite_i)
+   (define (helper i)
+     (if (= 11 i)
+         '()
+         (begin (cons (get-range-time-avg lite_i i) (helper (+ i 1))))
+         )
+     )
+   (helper 0)
+)
+|#
+
+;;gets the average difference between all sets of adjacent indexes with
+;;values not 0 for any list,
+
+;;if either or both are zero, then ignores....
+
+(define (average-diff times_)
+  (define (helper i avg num)
+    (if ( = i 11)
+        (/ avg num)
+        (if (or (= 0 (list-ref times_ i)) (= 0 (list-ref times_ (+ i 1))))
+            (helper (+ i 1) avg num)
+            (helper (+ i 1) (+ avg ( - (list-ref times_ i) (list-ref
+                                                            times_ (+ i 1)))) (+ num 1))
+            )
+        )
+    )
+  (helper 0 0 0)
+  )
+
+;;fills up to first index with values based on average difference
+;;between existent indexes
+
+
+(define (fill-front avg times_)
+  (cond
+    ((null? times_)
+     '())
+    ((and (= 0 (list-ref times_ 0)) (not (= 0 (list-ref times_ 1))))
+     (cons (+ avg (list-ref times_ 1)) (cdr times_)))
+    ((and (= 0 (list-ref times_ 0)) (= 0 (list-ref times_ 1)))
+     (fill-front avg (cons 0 (fill-front avg (cdr times_)))))
+    (else
+     times_)
+    )
+  )
+
+
+;;fills down to last index for any list where the atleast the first
+;;index is not a 0 ( first two will not be 0 if first isn't ...
+;;unimportant side note)
+
+
+(define (fill-down avg times_)
+  (cond
+    ((null? times_)
+     '())
+    (( = 0 (list-ref times_ 1))
+     (cons (car times_) (cons (- (list-ref times_ 0) avg) (fill-down
+                                                           avg  (cddr times_)))))
+    (else
+     (cons (car times_) (fill-down avg (cdr times_))))
+    )
+  )
+
+;;this is how it all together,
+
+;;to eliminate need for database dependent function,
+;;"temp-times->partial-list"
+
+;;COULD replace lite_i with "partial-list", just pass this function a
+;;premade "partial-list", and remove the first let-statement
+
+
+#|
+(define (table-temp-times->list lite_i)
+  (let ((partial-list (temp-times->partial-list lite_i))
+         )
+     (let ((avg (average-diff partial-list))
+           )
+       (fill-down avg (fill-front avg partial-list))
+       ))
+  )
+|#
+
+(define (table-temp-times->list partial-list)
+  (let ((avg (average-diff partial-list))
+        )
+    (fill-down avg (fill-front avg partial-list))
+    )
+  )
+
+
+
+
+;;//when i run my "complete" function//
+
+
+(table-temp-times->list '(0 0 80 70 53 0 40 30 20 10 0))
+;'(102 4/5 91 2/5 80 70 53 41 3/5 40 30 20 10 -1 2/5)
+
+
+
+;;//the first partial list//
+
+;> (temp-times->partial-list 8)
+;'(0 0 80 70 53 0 40 30 20 10 0)
+
+
+
+;;//average for partial-list is (11 2/5) = (57 / 5)//
+
+(average-diff '(0 0 80 70 53 0 40 30 20 10 0))
+;11 2/5
+
+
+;;//fill-front for "avg = 57 / 5" and "partial-list = ...."//
+
+(fill-front (/ 57 5) '(0 0 80 70 53 0 40 30 20 10 0))
+;'(102 4/5 91 2/5 80 70 53 0 40 30 20 10 0)
+
+
+;;//fill-down for "avg = 57 / 2" and previous fill-front created list....
+;;output is same as my first "complete" fn
+
+(fill-down (/ 57 5) (fill-front (/ 57 5) '(0 0 80 70 53 0 40 30 20 10 0)))
+;'(102 4/5 91 2/5 80 70 53 41 3/5 40 30 20 10 -1 2/5)
 
