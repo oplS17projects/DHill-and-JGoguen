@@ -93,13 +93,16 @@
                  [plot-height   500]
                  [plot-x-label  xlabel]
                  [plot-y-label  ylabel])
-    (plot
-     (points (for/list ([i cyclelist]
-                        [j (in-range (length cyclelist))])
-               (list j i)))
+    (plot (list (axes)
+                (lines (for/list ([i cyclelist]
+                                  [j (in-range (length cyclelist))])
+                         (list j i)))
+                (points (for/list ([i cyclelist]
+                                   [j (in-range (length cyclelist))])
+                          (list j i))))
+                
      #:x-min 0 #:x-max (+ 1 (length cyclelist)) #:y-min 0 #:y-max ymax))
   )
-
 
 
 
@@ -263,4 +266,19 @@
 
 (fill-down (/ 57 5) (fill-front (/ 57 5) '(0 0 80 70 53 0 40 30 20 10 0)))
 ;'(102 4/5 91 2/5 80 70 53 41 3/5 40 30 20 10 -1 2/5)
+
+
+
+
+;; convert to decimal
+(define decimal_list
+  (map exact->inexact
+       (fill-down (/ 57 5) (fill-front (/ 57 5) '(0 0 80 70 53 0 40 30 20 10 0)))
+  ))
+
+
+;test with new values
+
+(plot-cycle decimal_list "Temperature Range" "Cycle Time" 110)
+
 
