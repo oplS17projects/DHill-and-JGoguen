@@ -7,88 +7,17 @@
 (require racket/gui/base)
 (require "firmata.rkt")
 (require "newgui.rkt")
+(require "newdb.rkt")
 
 ;; opens up connection to arduino at the given input_port
-(open-firmata "/dev/cu.usbmodem1411")
-
-;; opens up connection to database
-(define sqlc
-  (sqlite3-connect #:database "test3.db" ))
+(open-firmata "/dev/cu.usbmodem1421")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;INITIALIZE NEW DB TABLE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; DYNAMIC SQL STATEMENT STRINGS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;;create-table statement
-(define start "CREATE TABLE ")
-(define end " (avg_temp_range integer, avg_time integer NOT NULL, time_count integer)")
-(define table_name (make-string 12))
-
-(print "Please Enter a (exactly) 12 letter table name (first = char, [2-8] = char || digit )")
-(read-string! table_name (current-input-port) 0 12)
-
-(define (create_data_db i)
-  (if (= i 11)
-      (string-append start table_name end)
-      (string-append start table_name (number->string i) end)))
-
-
-;;INSERT INTO ,table_name(i) (avg_temp_range, avg_time, time_count) VALUES ( *?range-row-val?* , 0, 0)
-(define (init-start i) (string-append "INSERT INTO " table_name (number->string i)))
-(define init-mid " (avg_temp_range, avg_time, time_count) VALUES (" )
-(define init-end ", 0, 0)")
-
-;;UPDATE evap_time_avg
-
-
-;;UPDATE ,table_name(i)  SET avg_time = *?avg_time?* , time_count = *?time_count?* WHERE (avg_temp_range = *?temp_range?* ) 
-(define (update-start i) (string-append "UPDATE " table_name (number->string i) " SET avg_time = "))
-(define update-mid ", time_count = ")
-(define update-where " WHERE (avg_temp_range = ")
-
-;;SELECT *? avg_time || time_count ?* FROM ,table_name(i) WHERE (avg_temp_range = *?temp_range?* )
-(define select-start "SELECT ")
-(define (select-temp-range-end i) (string-append " FROM " table_name (number->string i) " WHERE (avg_temp_range = "))
-(define (select-all-range-end i) (string-append " FROM " table_name (number->string i)))
-
-
-(define (init-loop)
-        (define (help i)
-          (cond ((= i 11) (print "Finish init 0-10\n"))
-                (else
-                 (query-exec sqlc (create_data_db i))
-                 (query-exec sqlc            (string-append (init-start i) init-mid "0" init-end))
-                 (query-exec sqlc            (string-append (init-start i) init-mid "1" init-end))
-                 (query-exec sqlc            (string-append (init-start i) init-mid "2" init-end))
-                 (query-exec sqlc            (string-append (init-start i) init-mid "3" init-end))
-                 (query-exec sqlc            (string-append (init-start i) init-mid "4" init-end))
-                 (query-exec sqlc            (string-append (init-start i) init-mid "5" init-end))
-                 (query-exec sqlc            (string-append (init-start i) init-mid "6" init-end))
-                 (query-exec sqlc            (string-append (init-start i) init-mid "7" init-end))
-                 (query-exec sqlc            (string-append (init-start i) init-mid "8" init-end))
-                 (query-exec sqlc            (string-append (init-start i) init-mid "9" init-end))
-                 (query-exec sqlc            (string-append (init-start i) init-mid "10" init-end))
-                 (help (+ i 1))))
-          )
-        (help 0)
-  )
-;;init the database
-(if (table-exists? sqlc table_name)
-    (begin (print "TABLE-EXISTS!\n"))
-    (begin 
-      (query-exec sqlc (create_data_db 11)) ;; just so can check table exists in future
-      (init-loop)
-      )
-    )
-
 ;(send frame set-label (string-append "TABLE: " table_name))  
 
 ;(send frame show #t)
-
-
-
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; GLOBAL DEFINITIONS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define OUTPUT 0)
@@ -156,9 +85,9 @@
  (query-value sqlc (string-append select-start "time_count" (select-temp-range-end lite_i) (number->string range) ")")))
 
 ;;expected time till completion of current water cycle
-(define (curr-exp-time)
-  (let ((ranges (temp-and-light-ranges sum_temp_readings_ cycle_light_ temp_reading_count_)))
-    (- (get-range-time-avg (cadr ranges) (car ranges)) (- (current-seconds) previous_timestamp_))))
+(define (curr-exp-time sum_temp_ sum_light_ reading_count_ prev_ts_)
+  (let ((ranges (temp-and-light-ranges sum_temp_ sum_light_ reading_count_)))
+    (- (get-range-time-avg (cadr ranges) (car ranges)) (- (current-seconds) prev_ts_))))
 
 ;;updates the avg_time between waterings for the avg_temp_range = curr_temp_range 
 (define (update-current-db curr_temp_range time_ lite_i)
@@ -292,11 +221,27 @@
            (rm-plots)
            (update-plots cycle_temperatures "temperature" 100)
            (update-plots cycle_moistures "moisture" 1000)
-           (update-plots cycle_lights "light" 100)
-           (send-curr-vals (curr-exp-time) previous_timestamp_ (curr-soil-moisture)) (sleep 10) (sensor-loop) )
+           (update-plots cycle_lights "light" 1000)
+           (send-curr-vals ( curr-exp-time sum_temp_readings_ cycle_light_ temp_reading_count_ previous_timestamp_)
+                           previous_timestamp_ (curr-soil-moisture) (curr-temp-f) (curr-light) )
+           (sleep 10) (sensor-loop) )
     ))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;main ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
 
+;;init the database
+
+(init-table-name)
+
+(init-db-loop)
+
+(if (table-exists? sqlc table_name)
+    (begin (print "TABLE-EXISTS!\n"))
+    (begin 
+      (query-exec sqlc (create_data_db 11)) ;; just so can check table exists in future
+      (init-loop)
+      )
+    )
 
 
 (define sensor-thread
@@ -305,6 +250,6 @@
                     (sensor-loop)
     (loop)))))
 
-(init-gui sensor-thread)
+(init-gui table_name sensor-thread)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

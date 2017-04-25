@@ -148,46 +148,65 @@
                              [parent curr-readings]
                              [vert-margin 0]
                              ))
-(define curr-moisture-panel (new horizontal-panel%
-                                 [parent curr-readings]
-                                 [vert-margin 0]
-                                 )) 
+
 (define curr-exp-time-panel (new horizontal-panel%
                                  [parent curr-readings]
                                  [vert-margin 0]
                                  ))
+(define curr-sensor-panel (new horizontal-panel%
+                                 [parent curr-readings]
+                                 [vert-margin 0]
+                                 )) 
 (new message%
      [parent curr-time-panel]
      [vert-margin 0]
      [label "Current Cycle Time: "]
-     
      )
-
-(new message%
-     [parent curr-moisture-panel]
-     [vert-margin 0]
-     [label "Current Soil Moisture: "])
 
 (new message%
      [parent curr-exp-time-panel]
      [vert-margin 0]
-     [label "Expected time until Water: "])
-
-
+     [label "Expected time until Water: "]
+     )
 (define curr-time-msg (new message%
                            [parent curr-time-panel]
                            [vert-margin 0]
                            [label "nothing...."]))
-(define curr-moisture-msg (new message%
-                               [parent curr-moisture-panel]
-                               [vert-margin 0]
-                               [label "nothing...."]))
 (define curr-exp-time-msg (new message%
                                [parent curr-exp-time-panel]
                                [vert-margin 0]
                                [label "nothing...."]))
+(new message%
+     [parent curr-sensor-panel]
+     [vert-margin 0]
+     [label "Current Soil Moisture: "]
+     )
 
+(define curr-moisture-msg (new message%
+                               [parent curr-sensor-panel]
+                               [vert-margin 0]
+                               [label "nothing...."]))
 
+(new message%
+     [parent curr-sensor-panel]
+     [vert-margin 0]
+     [label "Current Temperature: "]
+     )
+(define curr-temperature-msg (new message%
+                               [parent curr-sensor-panel]
+                               [vert-margin 0]
+                               [label "nothing...."]))
+
+(new message%
+     [parent curr-sensor-panel]
+     [vert-margin 0]
+     [label "Current Light Intensity (/ 1000 max): "]
+     )
+
+(define curr-light-msg (new message%
+                               [parent curr-sensor-panel]
+                               [vert-margin 0]
+                               [label "nothing...."]))
 
 (define c (new editor-canvas%
                [parent curr-readings]
@@ -224,9 +243,15 @@
   )
 
 ;;curr-moisuture-msg update
-(define (send-curr-moisture moisture_)
+(define (send-curr-moisture moisture_ )
   ( send curr-moisture-msg set-label (number->string moisture_) )
       )
+(define (send-curr-temperature temperature_ )
+  ( send curr-temperature-msg set-label (number->string temperature_) )
+      )                                                 
+(define (send-curr-light light_ )
+  ( send curr-light-msg set-label (number->string light_) )
+  )
 
 ;;curr-expected-time update
 (define (send-curr-exp-time exp_time)
@@ -245,8 +270,8 @@
   (send-avg-temp sum_temp_ reading_count_) (send-avg-light light_ reading_count_) (send-cycle-time prev_ts_))
 
 ;;send gui currents
-(define (send-curr-vals exp_time prev_ts_ moisture_ )
-  (send-curr-moisture moisture_) (send-cycle-time prev_ts_) (send-curr-exp-time exp_time))
+(define (send-curr-vals exp_time prev_ts_ moisture_ temp_ light_ )
+  (send-curr-moisture moisture_) (send-curr-temperature temp_) (send-curr-light light_) (send-cycle-time prev_ts_) (send-curr-exp-time exp_time))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -356,7 +381,8 @@
                         )
   )
 
-(define (init-gui thd)
+(define (init-gui table_name thd)
+  (send frame set-label (string-append "Current Plant" table_name))
   (send curr-readings show #t)
   (send avg-readings show #f)
   (send frame show #t)
