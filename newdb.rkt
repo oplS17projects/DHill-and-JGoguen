@@ -2,7 +2,10 @@
 
 (require sql db)
 (require sqlite-table)
+(require "plots.rkt")
+
 (provide (all-defined-out))
+
 
 ;; opens up connection to database
 (define sqlc
@@ -131,6 +134,43 @@
        (string-append select-start "avg_time time_count" (select-all-range-end lite_i)))
   )
 
-;;function for plotting temp-range 0 - 10
+;;function for plotting temp-range/light-level 0 - 10 by lists
 
+(define (light-times->partial-list temp_range)
+  (define (helper i)
+    (if (= 11 i)
+        '()
+        (begin (cons (get-range-time-avg i temp_range) (helper (+ i 1))))
+        )
+    )
+  (helper 0)
+)
+
+(define (temp-times->partial-list lite_i)
+  (define (helper i)
+    (if (= 11 i)
+        '()
+        (begin (cons (get-range-time-avg lite_i i) (helper (+ i 1))))
+        )
+    )
+  (helper 0)
+)
+
+(define (table-temperature-times->list lite_i)
+  (let ((partial-list (temp-times->partial-list lite_i))
+        )
+    (let ((avg (average-diff partial-list))
+          )
+      (fill-down avg (fill-front avg partial-list))
+      ))
+  ) 
+
+(define (table-light-times->list temp_range)
+  (let ((partial-list (light-times->partial-list temp_range))
+        )
+    (let ((avg (average-diff partial-list))
+          )
+      (fill-down avg (fill-front avg partial-list))
+      ))
+  ) 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

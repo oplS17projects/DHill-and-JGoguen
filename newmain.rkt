@@ -3,7 +3,6 @@
 (require sql db)
 (require sqlite-table)
 (require racket/async-channel)
-(require plot)
 (require racket/gui/base)
 (require "firmata.rkt")
 (require "newgui.rkt")
@@ -213,15 +212,15 @@
   (cond
     ( ( > cycle_tics_ 50) (display "Completed: " ) (display cycle_tics_) (display " Cycles\n") (set! cycle_tics_ 0) (display "********************\n*******************\n") ) 
     ( ( > min-moisture-threshold (quick-avg-soil 5) ) (set! cycle_tics_ 0) (complete-water-cycle)
-                                                      (rm-plots)
+                                                      (rm-curr-plots)
                                                       (cycle-complete)
                                                       (send-avg-vals sum_temp_readings_ temp_reading_count_ cycle_light_ previous_timestamp_)
                                                       (reset-cycle-vals) (reset-cycle-lists) (sleep 10) (sensor-loop) )
     ( else (update-globals)
-           (rm-plots)
-           (update-plots cycle_temperatures "temperature" 100)
-           (update-plots cycle_moistures "moisture" 1000)
-           (update-plots cycle_lights "light" 1000)
+           (rm-curr-plots)
+           (update-curr-plots cycle_temperatures "temperature" 100)
+           (update-curr-plots cycle_moistures "moisture" 1000)
+           (update-curr-plots cycle_lights "light" 1000)
            (send-curr-vals ( curr-exp-time sum_temp_readings_ cycle_light_ temp_reading_count_ previous_timestamp_)
                            previous_timestamp_ (curr-soil-moisture) (curr-temp-f) (curr-light) )
            (sleep 10) (sensor-loop) )
@@ -233,13 +232,11 @@
 
 (init-table-name)
 
-(init-db-loop)
-
 (if (table-exists? sqlc table_name)
     (begin (print "TABLE-EXISTS!\n"))
     (begin 
       (query-exec sqlc (create_data_db 11)) ;; just so can check table exists in future
-      (init-loop)
+      (init-db-loop)
       )
     )
 
