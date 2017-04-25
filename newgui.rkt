@@ -1,7 +1,9 @@
 #lang racket
 
 (require racket/gui)
-(require plot)
+(require "newdb.rkt")
+(require "plots.rkt")
+
 (provide (all-defined-out))
 
 (define ctrl-thread "")
@@ -11,52 +13,6 @@
 ;(define cycle_lights '(70 90 88 89 90 75))
 
   
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Initialization Window ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;;(define initial_frame (new frame%
-  ;                         [label "Set Up"]
-   ;                        [width 400]
-    ;                       [height 200]))
-
-;(define init_h (new horizontal-panel%
- ;                   [parent initial_frame]
-  ;                  ))
-
-;(define init-button (new button%
- ;                       [parent init_h]
-  ;                      [label "Initialize Program!"]
-   ;                     ; Callback procedure for a button click:
-    ;                    [callback (lambda (button event)
-     ;                               (print (send table-inquiry get-text))
-      ;                              (send curr-readings show #t)
-       ;                             (send avg-readings show #f)
-        ;                            (send frame show #t)
-         ;                           (send avg-readings client->screen 500 500)
-          ;                          (send c set-editor pb)
-           ;                         (send c show #t)
-                                    ;(update-plots cycle_temperatures "temperature" 100)
-                                    ;(update-plots cycle_moistures "moisture" 1000)
-                                    ;(update-plots cycle_lights "light" 100)
-            ;                        (send initial_frame show #f)
-             ;                       )
-              ;                    ]
-               ;         )
-  ;)
-
-
-;;;;;;;;;;;;; text input for intiailze button ;;;;;;;;;;;;;;;;;;;;;;;;
-
-;(define tfc (new editor-canvas%
- ;              [parent init_h]
-  ;             [stretchable-height 10] ))
-;
-;(define table-inquiry (new text%))
-
-;(send initial_frame enable #t)
-;(send initial_frame show #t)
-;(send tfc set-editor table-inquiry)
-;(send tfc show #t)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Main GUI Window ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -91,7 +47,11 @@
                         [label "Temp/Time Plot"]
                         ; Callback procedure for a button click:
                         [callback (lambda (button event)
-                                    (print (send light_level_slider get-value))
+                                    (send plot-frame show #t)
+                                    (send plot-avg-c show #t)
+                                    (display (temp-times->partial-list (send light_level_slider get-value)))
+                                    (show-avg-plot (table-temperature-times->list (send light_level_slider get-value)) "light intensity" 100)
+                                    (print "HIHI")
                                     )
                                   ]
                         )
@@ -113,7 +73,11 @@
                         [label "Light/Time Plot"]
                         ; Callback procedure for a button click:
                         [callback (lambda (button event)
-                                    (print (send temp_range_slider get-value))
+                                    (send plot-frame show #t)
+                                    (send plot-avg-c show #t)
+                                    (display (light-times->partial-list (send temp_range_slider get-value)))
+                                    (show-avg-plot (table-light-times->list (send temp_range_slider get-value)) "light intensity" 100)
+                                    (print "HIHI")
                                     )
                                   ]
                         )
@@ -128,6 +92,48 @@
 (define h2 (new horizontal-panel%
                 [parent p0]
                 ))
+
+;;;;;;;;;;;;;;;;;; AVERAGE PLOT FRAME 
+
+(define plot-frame (new frame%
+                        [parent frame]
+                        [label " "]
+                        [width 500]
+                        [height 500]
+                        ))
+(define exit-avg-plot (new button%
+                        [parent plot-frame]
+                        [label "Exit"]
+                        ; Callback procedure for a button click:
+                        [callback (lambda (button event)
+                                    (rm-avg-plots)
+                                    (send plot-avg-c show #f)
+                                    (send plot-frame show #f)
+                                    )
+                                  ]
+                        )
+  )
+                           
+
+(define plot-avg-c (new editor-canvas%
+               [parent plot-frame]
+               [min-height 200] ))
+
+
+(define plot-avg-pb (new pasteboard%))
+
+
+(define (show-avg-plot cyclelist xlabel ymax)
+  (send plot-avg-pb insert (plot-cycle cyclelist xlabel ymax) 10 10)
+  (send plot-avg-c show #t)
+  )
+
+
+(define (rm-avg-plots)
+  (send plot-avg-pb select-all)
+  (send plot-avg-pb delete)
+  ) 
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -176,16 +182,6 @@
                                [parent curr-exp-time-panel]
                                [vert-margin 0]
                                [label "nothing...."]))
-(new message%
-     [parent curr-sensor-panel]
-     [vert-margin 0]
-     [label "Current Soil Moisture: "]
-     )
-
-(define curr-moisture-msg (new message%
-                               [parent curr-sensor-panel]
-                               [vert-margin 0]
-                               [label "nothing...."]))
 
 (new message%
      [parent curr-sensor-panel]
@@ -195,25 +191,37 @@
 (define curr-temperature-msg (new message%
                                [parent curr-sensor-panel]
                                [vert-margin 0]
-                               [label "nothing...."]))
+                               [label "nothing...."])
+  )
 
 (new message%
      [parent curr-sensor-panel]
      [vert-margin 0]
-     [label "Current Light Intensity (/ 1000 max): "]
+     [label "Current Soil Moisture: "]
      )
+(define curr-moisture-msg (new message%
+                               [parent curr-sensor-panel]
+                               [vert-margin 0]
+                               [label "nothing...."])
+  )
 
+(new message%
+     [parent curr-sensor-panel]
+     [vert-margin 0]
+     [label "Current Light Intensity: "]
+     )
 (define curr-light-msg (new message%
                                [parent curr-sensor-panel]
                                [vert-margin 0]
-                               [label "nothing...."]))
+                               [label "nothing...."])
+  )
 
-(define c (new editor-canvas%
+(define plot-curr-c (new editor-canvas%
                [parent curr-readings]
                [min-height 200] ))
 
 
-(define pb (new pasteboard%))
+(define plot-curr-pb (new pasteboard%))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; SENSOR -> GUI FUNCTIONS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -275,32 +283,20 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define (plot-cycle-vals cycle_vals y-lab y-max)
-    (parameterize (
-                   [plot-width    180]
-                   [plot-height   180]
-                   [plot-x-label  "time"]
-                   [plot-y-label  y-lab])
-      (plot-snip
-       (points (for/list ([i cycle_vals] [j (in-range (length cycle_vals))])
-                 (list j i)))
-       #:x-min 0 #:x-max (length cycle_vals) #:y-min 0 #:y-max y-max))
-  )
 
-
-(define (update-plots cycle_vals y-lab y-max)
+(define (update-curr-plots cycle_vals y-lab y-max)
   (let ((x-offset 0))
     (cond
       ((equal? "temperature" y-lab) (set! x-offset 0))
       ((equal? "moisture" y-lab) (set! x-offset 200))
       (else (set! x-offset 400)))
-    (send pb insert (plot-cycle-vals cycle_vals y-lab y-max) x-offset 10)
+    (send plot-curr-pb insert (plot-cycle-vals cycle_vals y-lab y-max) x-offset 10)
     )
   )
 
-(define (rm-plots)
-  (send pb select-all)
-  (send pb delete)) 
+(define (rm-curr-plots)
+  (send plot-curr-pb select-all)
+  (send plot-curr-pb delete)) 
 
 
 
@@ -363,7 +359,7 @@
                         [callback (lambda (button event)
                                     (send avg-readings show #f)
                                     (send curr-readings show #t)
-                                    (send c show #t)
+                                    (send plot-curr-c show #t)
                                     (thread-resume ctrl-thread)
                                     )
                                   ]
@@ -382,20 +378,24 @@
   )
 
 (define (init-gui table_name thd)
-  (send frame set-label (string-append "Current Plant" table_name))
+  (send frame set-label (string-append "Current Table Name:  " table_name))
+  (send top-functions show #t)
+  (send plot-frame show #f)
   (send curr-readings show #t)
   (send avg-readings show #f)
   (send frame show #t)
   (send avg-readings client->screen 500 500)
-  (send c set-editor pb)
-  (send c show #t)
+  (send plot-avg-c set-editor plot-avg-pb)
+  (send plot-avg-c show #f)
+  (send plot-curr-c set-editor plot-curr-pb)
+  (send plot-curr-c show #t)
   (set! ctrl-thread thd)
 )
 
 (define (cycle-complete)
   (send avg-readings show #t)
   (send curr-readings show #f)
-  (send c show #f)
+  (send plot-curr-c show #f)
   (thread-suspend ctrl-thread)
   )
 
