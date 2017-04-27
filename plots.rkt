@@ -5,11 +5,13 @@
 
 (provide (all-defined-out))
 
-(plot-new-window? #t)
+;for plot snips, no new window
+;(plot-new-window? #t)
 
 
 ;plot functions
 
+#|
 (define (plot-cycle cyclelist xlabel ymax)
   
   (let ((col
@@ -96,7 +98,96 @@
           #:title (string-append y-lab " vs. " "time"))
     )
   )
+|#
 
+
+
+;; FOR PLOT SNIPS:
+
+(define (plot-cycle cyclelist xlabel ymax)
+  
+  (let ((col
+         (cond
+           ((equal? "light" xlabel) "yellow")
+           ((equal? "temperature" xlabel) "orange")
+           ((equal? "moisture" xlabel) "blue")
+           (else "red"))))
+    
+    ;plot data
+    (plot-snip (list (axes) ;snip
+                
+                ;line
+                (lines (for/list ([i cyclelist]
+                                  [j (in-range (length cyclelist))])
+                         (list j i))
+                       
+                       #:color col
+                       #:width 4)
+              
+                ;points
+                (points (for/list ([i cyclelist]
+                                   [j (in-range (length cyclelist))])
+                          (list j i))
+                      
+                        #:color col
+                        #:line-width 4
+                        #:sym 'odot))
+        
+          ;graph
+          #:x-min 0
+          #:x-max (+ 1 (length cyclelist))
+          #:y-min 0
+          #:y-max ymax
+          #:x-label xlabel
+          #:y-label "average cycle time"
+          #:width 500
+          #:height 500
+          #:title (string-append "average cycle time" " vs. " xlabel))
+    )
+  )
+
+
+
+
+(define (plot-cycle-vals cycle_vals y-lab y-max)
+  
+  (let ((col
+         (cond
+           ((equal? "light" y-lab) "yellow")
+           ((equal? "temperature" y-lab) "orange")
+           ((equal? "moisture" y-lab) "blue")
+           (else "red"))))
+  
+    ;plot data
+    (plot-snip (list (axes) ;snip
+              
+                ;line
+                (lines (for/list ([i cycle_vals] [j (in-range (length cycle_vals))])
+                         (list j i))
+
+                       #:color col
+                       #:width 4)
+
+                ;points
+                (points (for/list ([i cycle_vals] [j (in-range (length cycle_vals))])
+                          (list j i))
+
+                        #:color col
+                        #:line-width 4
+                        #:sym 'odot))
+
+          ;graph
+          #:x-min 0
+          #:x-max (+ 1 (length cycle_vals))
+          #:y-min 0
+          #:y-max y-max
+          #:x-label "time"
+          #:y-label y-lab
+          #:width 500
+          #:height 500
+          #:title (string-append y-lab " vs. " "time"))
+    )
+  )
     
 
 
