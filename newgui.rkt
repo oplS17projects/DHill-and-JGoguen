@@ -6,15 +6,10 @@
 
 (provide (all-defined-out))
 
+;;will hold thread that gui oversees... aka sensor-thread....
 (define ctrl-thread "")
 
-;(define cycle_temperatures '(90 91 90 89 86 87))
-;(define cycle_moistures '(800 750 700 650 610 580))
-;(define cycle_lights '(70 90 88 89 90 75))
-
-  
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Main GUI Window ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Main GUI Window ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
   (define frame (new frame%
@@ -23,7 +18,8 @@
                    [height 600]
                    ))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Database plotting interface ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Database plotting interface ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define top-functions (new group-box-panel%
                            [label "Database Interface: "]
@@ -49,9 +45,7 @@
                         [callback (lambda (button event)
                                     (send plot-frame show #t)
                                     (send plot-avg-c show #t)
-                                    (display (temp-times->partial-list (send light_level_slider get-value)))
-                                    (show-avg-plot (table-temperature-times->list (send light_level_slider get-value)) "light intensity" 100)
-                                    (print "HIHI")
+                                    (show-avg-plot (table-temperature-times->list (send light_level_slider get-value)) "light intensity" 40000)
                                     )
                                   ]
                         )
@@ -75,9 +69,7 @@
                         [callback (lambda (button event)
                                     (send plot-frame show #t)
                                     (send plot-avg-c show #t)
-                                    (display (light-times->partial-list (send temp_range_slider get-value)))
-                                    (show-avg-plot (table-light-times->list (send temp_range_slider get-value)) "light intensity" 100)
-                                    (print "HIHI")
+                                    (show-avg-plot (table-light-times->list (send temp_range_slider get-value)) "light intensity" 40000)
                                     )
                                   ]
                         )
@@ -93,7 +85,7 @@
                 [parent p0]
                 ))
 
-;;;;;;;;;;;;;;;;;; AVERAGE PLOT FRAME 
+;;;;;;;;;;;;;;;;;; AVERAGE PLOT FRAME ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define plot-frame (new frame%
                         [parent frame]
@@ -122,7 +114,7 @@
 
 (define plot-avg-pb (new pasteboard%))
 
-
+;;updates and displays avg-plot of "cyclelist" specified by "xlabel"
 (define (show-avg-plot cyclelist xlabel ymax)
   (send plot-avg-pb insert (plot-cycle cyclelist xlabel ymax) 10 10)
   (send plot-avg-c show #t)
@@ -135,10 +127,9 @@
   ) 
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; CURRENT values GUI box ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; CURRENT values GUI box ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define curr-readings (new group-box-panel%
                            [label "Current Values: "]
@@ -182,7 +173,17 @@
                                [parent curr-exp-time-panel]
                                [vert-margin 0]
                                [label "nothing...."]))
+(new message%
+     [parent curr-time-panel]
+     [vert-margin 0]
+     [label "seconds"]
+     )
 
+(new message%
+     [parent curr-exp-time-panel]
+     [vert-margin 0]
+     [label "seconds"]
+     )
 (new message%
      [parent curr-sensor-panel]
      [vert-margin 0]
@@ -193,7 +194,11 @@
                                [vert-margin 0]
                                [label "nothing...."])
   )
-
+(new message%
+     [parent curr-sensor-panel]
+     [vert-margin 0]
+     [label "degrees F    "]
+     )
 (new message%
      [parent curr-sensor-panel]
      [vert-margin 0]
@@ -223,22 +228,33 @@
 
 (define plot-curr-pb (new pasteboard%))
 
+;;adds plot for "cycle_vals" specified by "y-lab"
+(define (update-curr-plots cycle_vals y-lab y-max)
+  (let ((x-offset 0))
+    (cond
+      ((equal? "temperature" y-lab) (set! x-offset 0))
+      ((equal? "moisture" y-lab) (set! x-offset 200))
+      (else (set! x-offset 400)))
+    (send plot-curr-pb insert (plot-cycle-vals cycle_vals y-lab y-max) x-offset 10)
+    )
+  )
+
+(define (rm-curr-plots)
+  (send plot-curr-pb select-all)
+  (send plot-curr-pb delete)) 
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; SENSOR -> GUI FUNCTIONS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
-;;sets up gui for appropriate display values 
-;(define (set-frame-header c)
- ; (cond
-  ;  ((equal? c "cwc") (send curr-readings show #f) (send avg-readings show #t) (send msg set-label "Completeted Water Cycle!"))
-   ; ((equal? c "db")  (send msg set-label "Database Values"))
-    ;(else (send curr-readings show #t) (send avg-readings show #f) (send msg set-label "Current Readings..."))
-     ;))
 
 ;;avg-temp-msg update
 (define (send-avg-temp sum_temp_ reading_count_)
   (if (equal? sum_temp_ 0)
       ( send avg-temp-msg set-label (number->string sum_temp_) )
-      ( send avg-temp-msg set-label (number->string (round (/ sum_temp_ reading_count_))) )
+      ( send avg-temp-msg set-label (number->string (exact->inexact (round (/ sum_temp_ reading_count_)))) )
       )
   )
 
@@ -246,19 +262,19 @@
 (define (send-avg-light light_ reading_count_)
   (if (equal? light_ 0)
       ( send avg-light-msg set-label (number->string light_) )
-      ( send avg-light-msg set-label (number->string (round (/ (/ light_ reading_count_) 100))) )
+      ( send avg-light-msg set-label (number->string (exact->inexact (round (/ (/ light_ reading_count_) 100)))) )
       )
   )
 
 ;;curr-moisuture-msg update
 (define (send-curr-moisture moisture_ )
-  ( send curr-moisture-msg set-label (number->string moisture_) )
+  ( send curr-moisture-msg set-label (number->string (exact->inexact moisture_)) )
       )
 (define (send-curr-temperature temperature_ )
-  ( send curr-temperature-msg set-label (number->string temperature_) )
+  ( send curr-temperature-msg set-label (number->string (exact->inexact temperature_)) )
       )                                                 
 (define (send-curr-light light_ )
-  ( send curr-light-msg set-label (number->string light_) )
+  ( send curr-light-msg set-label (number->string (exact->inexact light_)) )
   )
 
 ;;curr-expected-time update
@@ -282,31 +298,13 @@
   (send-curr-moisture moisture_) (send-curr-temperature temp_) (send-curr-light light_) (send-cycle-time prev_ts_) (send-curr-exp-time exp_time))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-(define (update-curr-plots cycle_vals y-lab y-max)
-  (let ((x-offset 0))
-    (cond
-      ((equal? "temperature" y-lab) (set! x-offset 0))
-      ((equal? "moisture" y-lab) (set! x-offset 200))
-      (else (set! x-offset 400)))
-    (send plot-curr-pb insert (plot-cycle-vals cycle_vals y-lab y-max) x-offset 10)
-    )
-  )
-
-(define (rm-curr-plots)
-  (send plot-curr-pb select-all)
-  (send plot-curr-pb delete)) 
-
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; AVG cycle GUI box  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; AVG cycle GUI box  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define avg-readings (new frame%
                            [label "Cycle Values: "]
                            [parent frame]
-                           [stretchable-height 30]
+                           [height 100]
+                           [width 100]
                            [spacing 0]
                            
                            ))
