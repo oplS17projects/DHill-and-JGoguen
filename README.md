@@ -39,7 +39,7 @@ If we create sensors that accurately read information, store and analyze that da
 
 ## Architecture Diagram
 
-![architecture diagram](/arch.png?raw=true "architecture diagram")
+![architecture diagram](/arch2.2.png?raw=true "architecture diagram")
 
 Create several paragraphs of narrative to explain the pieces and how they interoperate.
 
