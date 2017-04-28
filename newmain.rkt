@@ -19,6 +19,8 @@
       )
     )
 
+(init-min-moisture)
+
 (reset-db)
 
 (demo-script)

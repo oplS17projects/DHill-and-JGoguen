@@ -39,6 +39,17 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;initialize min-moisture threshold
+(define (init-min-moisture)
+  (let ((tmp_min (make-string 3)))
+    (print "Please Enter '#i followed by a 2-3 digit minimal water moisture level for plant\n")
+    (print "Well watered = 300, Average = 200, Dry = 100, Cacti = 50") 
+    ;;(write (current-input-port))
+    (set! min-moisture-threshold (read (current-input-port)))
+    )
+  )
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; SENSORS FUNTIONS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;TEMPERATURE: analog reading -> celsius
@@ -56,7 +67,7 @@
 
 ;;AMBIENT LIGHT: analog reading (relative)
 (define (curr-light)
-  (let ((r (/ (* (read-analog-pin 2) 4) 5)))
+  (let ((r (/ (* (read-analog-pin 2) 3) 5)))
         (if (> r 1000) 
             1000
             r
