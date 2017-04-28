@@ -191,7 +191,42 @@
     
 
 
+
 ;;3D test function
+(define (plot-cycle-3d cyclelist cyclelist2 x-lab y-lab xmax ymax)
+
+  ;can modify this
+  (let ((time '(1 2 3 4 5 6 7 8 9 10 11)))
+
+    ;3d plot set up
+    (plot3d (list
+
+             ;points
+             (points3d
+              (map vector cyclelist cyclelist2 time)
+              
+              #:sym 'odot
+              #:line-width 3
+              #:color "orange")
+
+             ;lines
+             (lines3d
+              (map vector cyclelist cyclelist2 time)
+              
+              #:width 4
+              #:color "orange")
+             )
+
+            ;graph parameters
+            #:altitude 25
+            #:x-label x-lab
+            #:y-label y-lab
+            #:x-max xmax
+            #:y-max ymax)
+    )
+  )
+
+
 
 
 
@@ -259,6 +294,7 @@
 
 
 #|
+
 ;sample output
 (define temp_lst
   (fill-down (/ 57 5) (fill-front (/ 57 5) '(0 0 80 70 53 0 40 30 20 10 0))))
@@ -276,5 +312,7 @@
 
 (plot-cycle-vals sample_output "moisture" 110)
 
+;3d sample 
+(plot-cycle-3d sample_output (reverse sample_output) "light" "temperature" 110 110)
 |#
 
