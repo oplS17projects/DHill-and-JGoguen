@@ -6,21 +6,14 @@
   
 ### Analysis
 
-- Data abstraction: 
+- Data abstraction: Simplified representation of program into separate functional pieces: GUI, database, plotting, and sensor files.
   
 - Recursion: Reading sensors and writing/analyzing this information will be done in infinite loops.
   
-- Will you use map/filter/reduce? How? 
+- Map: Currently using map for a 3d plot implementation, vectorizing all plot points.
 
 - Object orientation: For certain arduino control features involving objects to represent external sensors and their associated pins/ pin functionality. Also for database interactivity, will need objects to represent the strings of plant/sensor information pulled from or put into database (using sqlite).
-  
-- Will you use functional approaches to processing your data? How?
 
-- Will you use state-modification approaches? How? (If so, this should be encapsulated within objects. `set!` pretty much should only exist inside an object.)
-
-- Will you build an expression evaluator, like we did in the symbolic differentatior and the metacircular evaluator?
-
-- Will you use lazy evaluation approaches?
 
 ### External Technologies
 
@@ -41,7 +34,7 @@ If we create sensors that accurately read information, store and analyze that da
 
 ![architecture diagram](/arch2.2.png?raw=true "architecture diagram")
 
-Create several paragraphs of narrative to explain the pieces and how they interoperate.
+Raw data is obtained from arduino sensors and stored in an sqlite database for ease of access. From the database, tables of formatted information are created and lists of values are passed to plotting and data analysis functions. All of this will be controlled through a user controlled GUI.
 
 ## Schedule
 
@@ -52,7 +45,7 @@ Initial implementation of arduino sensors and functionality. Outline structure o
 Create databases of information from sensors. Create plots from information.
 
 ### Public Presentation (Mon Apr 24, Wed Apr 26, or Fri Apr 28 [your date to be determined later])
-Implement user alert functionality. 
+Implement user alert/GUI functionality. 
 
 ## Group Responsibilities
 
