@@ -3,6 +3,7 @@
 (require racket/gui)
 (require "newdb.rkt")
 (require "plots.rkt")
+(require "tables.rkt")
 
 (provide (all-defined-out))
 
@@ -45,7 +46,7 @@
                         [callback (lambda (button event)
                                     (send plot-frame show #t)
                                     (send plot-avg-c show #t)
-                                    (show-avg-plot (table-temperature-times->list (send light_level_slider get-value)) "light intensity" 40000)
+                                    (show-avg-plot (table-temperature-times->list (send light_level_slider get-value)) "temperature range (10's of degrees)")
                                     )
                                   ]
                         )
@@ -69,7 +70,7 @@
                         [callback (lambda (button event)
                                     (send plot-frame show #t)
                                     (send plot-avg-c show #t)
-                                    (show-avg-plot (table-light-times->list (send temp_range_slider get-value)) "light intensity" 40000)
+                                    (show-avg-plot (table-light-times->list (send temp_range_slider get-value)) "light intensity")
                                     )
                                   ]
                         )
@@ -115,8 +116,8 @@
 (define plot-avg-pb (new pasteboard%))
 
 ;;updates and displays avg-plot of "cyclelist" specified by "xlabel"
-(define (show-avg-plot cyclelist xlabel ymax)
-  (send plot-avg-pb insert (plot-cycle cyclelist xlabel ymax) 10 10)
+(define (show-avg-plot cyclelist xlabel)
+  (send plot-avg-pb insert (plot-cycle cyclelist xlabel (+ (max-list cyclelist) 50)) 10 10)
   (send plot-avg-c show #t)
   )
 
@@ -374,6 +375,50 @@
                                   ]
                         )
   )
+
+
+(define tables-button (new button%
+                           [parent frame]
+                           [label "Tables"]
+                           [callback (lambda (button event)
+                                       (show-tables-frame)
+                                       )
+                                     ]
+                           )
+  )
+
+(define (set-all-tables)
+  (set-table0 (table-temperature-times->list 0))
+  (set-table1 (table-temperature-times->list 1))
+  (set-table2 (table-temperature-times->list 2))
+  (set-table3 (table-temperature-times->list 3))
+  (set-table4 (table-temperature-times->list 4))
+  (set-table5 (table-temperature-times->list 5))
+  (set-table6 (table-temperature-times->list 6))
+  (set-table7 (table-temperature-times->list 7))
+  (set-table8 (table-temperature-times->list 8))
+  (set-table9 (table-temperature-times->list 9))
+  (set-table10 (table-temperature-times->list 10))
+       
+  )
+(define (show-tables-frame)
+  (set-all-tables)
+  (send tables-frame focus)
+  (send tables-frame show #t)
+  (send table0 show #t)
+  (send table1 show #t)
+  (send table2 show #t)
+  (send table3 show #t)
+  (send table4 show #t)
+  (send table5 show #t)
+  (send table6 show #t)
+  (send table7 show #t)
+  (send table8 show #t)
+  (send table9 show #t)
+  (send table10 show #t)
+  (send tables-frame show #t)
+  )
+
 
 (define (init-gui table_name thd)
   (send frame set-label (string-append "Current Table Name:  " table_name))

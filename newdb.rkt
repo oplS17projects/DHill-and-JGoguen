@@ -198,6 +198,45 @@
     )
   )
 
+;;;;;;;;;; script for demo ;;;;;;;;;;;;;;;;;
+(define (demo-script)
+  (update-temps 0 150 9)
+
+  (update-temps 1 140 9)
+
+  (update-temps 2 130 8)
+
+  (update-temps 3 120 8)
+  
+  (update-temps 4 120 7)
+  (update-temps 4 120 7)
+  
+  (update-temps 5 110 7)
+  (update-temps 5 110 7)
+  (update-temps 5 110 7)
+  
+  (update-temps 6 105 7)
+  (update-temps 6 105 7)
+  (update-temps 6 105 7)
+  (update-temps 6 105 7)
+  
+  (update-temps 7 100 6)
+  (update-temps 7 100 6)
+  (update-temps 7 100 6)
+  (update-temps 7 100 6)
+  
+  (update-temps 8 95 6)
+  (update-temps 8 95 6)
+  (update-temps 8 95 6)
+  (update-temps 8 95 6)
+  
+  (update-temps 9 90 6)
+  (update-temps 9 90 6)
+  (update-temps 9 90 6)
+  
+  (update-temps 10 85 6)
+  (update-temps 10 85 6)
+  )
 
 ;;;;;;;;;; linear script ;;;;;;;;;;;;;
 (define (linear-script)

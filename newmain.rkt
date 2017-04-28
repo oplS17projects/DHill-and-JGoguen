@@ -21,8 +21,7 @@
 
 (reset-db)
 
-(quad-script)
-(linear-script)
+(demo-script)
 
 (define sensor-thread
   (thread (lambda ()

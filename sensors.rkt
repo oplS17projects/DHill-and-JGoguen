@@ -96,7 +96,7 @@
 
 ;;reset global current-values
 (define (reset-cycle-vals)
-  (set! previous_timestamp_ (current-seconds)) (set! cycle_light_ 0) (set! sum_temp_readings_ 0) (set! temp_reading_count_ 0))
+  (set! previous_timestamp_ (current-seconds)) (set! cycle_light_ 0) (set! sum_temp_readings_ 0) (set! temp_reading_count_ 0) (set! cycle_tics_ 0))
 
 ;; UPDATE global values for a single temp sensor-reading / quick-avg for temp sensor
 (define (update-globals)
@@ -145,7 +145,7 @@
 ;;loops indefinately, if soil moisture < min_moisture -> complete water cycle, else -> read & update values, continue
 (define (sensor-loop)
   (cond 
-    ( ( > min-moisture-threshold (curr-soil-moisture) ) (complete-water-cycle)
+    ( (and ( > min-moisture-threshold (curr-soil-moisture)) (not (= cycle_tics_ 0))) (complete-water-cycle)
                                                         (rm-curr-plots)
                                                         (send-avg-vals sum_temp_readings_ temp_reading_count_ cycle_light_ previous_timestamp_)
                                                         (cycle-complete)
