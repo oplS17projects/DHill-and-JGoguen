@@ -27,7 +27,9 @@ The code uses four libraries:
 
 ## 1. Data Abstraction
 
-code description 
+Separation of interface and implementation.
+
+GUI buttons for tables and plots -> single functions which create tables/plots based on parameters.
 
 ```
 insert code here
