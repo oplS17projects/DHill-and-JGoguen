@@ -3,7 +3,7 @@
 
 # Overview
 
-The code we wrote takes advantage of an arduino microcontroller and a temperature, soil-moisture, ligh-intensity sensor. The goal
+The code we wrote takes advantage of an arduino microcontroller and a temperature, soil-moisture, and light-intensity sensor. The goal
 was to enable a user to keep track of the watering needs of a plant. A loop is run infinitely, where the readings for temperature 
 and light are taken every ten seconds and sumanted. The soil-moisture is  also taken every ten seconds, and is compared against a 
 user designated "min-moisture-threshold". If the moisture drops below this threshold, the program updates a table in a database
