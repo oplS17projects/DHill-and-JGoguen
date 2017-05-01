@@ -92,16 +92,16 @@ To fulfill the programs main goal, our program uses an infinitely recursive loop
     ))
  ```
  
- This is the heart of the program, that which pumps the valued blood and breathes the real world sensored oxygen. There are only
- two possible paths this function can take, dependent on whether the ```(current-soil-moisture)``` has dropped below the 
- minimum threshold or not. If the current moisture is below the minumum threshold, then the program completes the current cycle
- by updating the database and reseting appropriate global values and lists. The average values of the cycle are printed 
+ This is the heart of the program, that which pumps the valued blood and breathes the real world sensored oxygen. There are 
+ only two possible paths this function can take, dependent on whether the ```(current-soil-moisture)``` has dropped below the 
+ minimum threshold or not. If the current moisture is below the minumum threshold, then the program completes the current 
+ cycle by updating the database and reseting appropriate global values and lists. The average values of the cycle are printed 
  on a newly opened gui window, and the program is "paused". If the current moisture is not below the threshold, then sensor 
  readings are taken and globals are updated. Both paths ultiamtely terminate in the loop calling itself again. 
 
  
- What actually is going on, allowing the program to "pause" without freezing the gui, is the ```(sensor-loop)``` is being run by
- a thread of the program. This code is found in our main source code ....
+ What actually is going on, allowing the program to "pause" without freezing the gui, is the ```(sensor-loop)``` is being run 
+ by a thread of the program. This code is found in our main source code ....
  
  ```
 (define sensor-thread
@@ -111,8 +111,9 @@ To fulfill the programs main goal, our program uses an infinitely recursive loop
     (loop)))))
 ```
 
-I unnecesarily made this a looping thread, but it never actually loops. Regardless, when a cycle is completed, the program
+I unnecesarily made this a "looping" thread, but it never actually loops. Regardless, when a cycle is completed, the program
 puts this loop to sleep, and await the user to click a "Next Cycle" gui button to resume the thread. 
+
 
 #3 Database dependency on Procedural Abstraction
 
@@ -152,9 +153,64 @@ Two of these functions that are also widely called upon are...
  (query-value sqlc (string-append select-start "time_count" (select-temp-range-end (inexact->exact lite_i)) (number->string (inexact->exact range)) ")")))
 ```
 
-The two functions are used to get the avg_time  (in seconds) or time_count for a specified light-intensity and temperture-range. They are also 
-widely-used by other database functions. Without proedural abstraction in our code, the amount of repetition would be shameful.
+The two functions are used to get the avg_time  (in seconds) or time_count for a specified light-intensity and temperture-
+range. They are also widely-used by other database functions. Without proedural abstraction in our code, the amount of 
+repetition would be shameful.
 
 
-#4 Lists and Abstracted variables 
+#4 Let, Set, and Lists: Personal Pair "mapping"
+
+Although a littel redundant with procedural abstraction, the program particularly needing a certain
+degree of correctness in correlating average temperatuer and light-intensity vlaues to their associated database
+tables and row indexes. It is a simple enough function but is a solid little hunk of code to be rewritten if necessary.
+
+Here is the code which takes a sum of temperture and light-intensities, along with the number of readings, and
+returns a list of two values, the temp_range (table row index) and light_range (table index).
+
+```
+(define (temp-and-light-ranges sum_temp_ sum_light_ reading_count_)
+  (let ((temp_range sum_temp_)
+        (light_range sum_light_))
+    (if (= temp_range 0)
+        0
+        (set! temp_range (round (/ (/ temp_range reading_count_) 10)))
+        )
+    (if (= light_range 0)
+        0
+        (set! light_range (round (/ (/ light_range reading_count_) 100)))
+        )
+    (list temp_range light_range)
+    )
+  )
+  ``` 
+  
+  It really is quite simple, but a few functions need this code, and bundling up the values in a list created by
+  another function reduced 11 lines of code to one per needed time.
+  
+  Two quick examples are...
+  
+  ```
+  (define (curr-exp-time sum_temp_ sum_light_ reading_count_ prev_ts_)
+  (let ((ranges (temp-and-light-ranges sum_temp_ sum_light_ reading_count_)))
+    (- (get-range-time-avg (cadr ranges) (car ranges)) (- (current-seconds) prev_ts_))))
+ ```
+ 
+ and
+ 
+ ```
+ (define (complete-water-cycle)
+  (let ((ranges (temp-and-light-ranges sum_temp_readings_ cycle_light_ temp_reading_count_)))
+    (begin
+      (display "\n Updating database with values \n sum_temp_readings: ") (display sum_temp_readings_)
+      (display "temp_reading_count: ") (display temp_reading_count_) (display "::::::::::::\n\n")
+      (update-current-db (car ranges) (- (current-seconds) previous_timestamp_) (cadr ranges) )
+      )
+    )
+  )
+ ```
+ 
+ It could be deemed  prideful to call importance to this or relate it to "mapping", but the amount it
+ cleaned up my code was definately not worthy.
+
+ 
  
