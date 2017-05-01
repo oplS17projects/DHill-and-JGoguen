@@ -5,7 +5,7 @@
 
 The code we wrote takes advantage of an arduino microcontroller and a temperature, soil-moisture, and light-intensity sensor. The goal
 was to enable a user to keep track of the watering needs of a plant. A loop is run infinitely, where the readings for temperature 
-and light are taken every ten seconds and sumanted. The soil-moisture is  also taken every ten seconds, and is compared against a 
+and light are taken every ten seconds and sumnated. The soil-moisture is  also taken every ten seconds, and is compared against a 
 user designated "min-moisture-threshold". If the moisture drops below this threshold, the program updates a table in a database
 for the given cycles average light-intensity and temperature, with the cycles total time in seconds. These entries are made 
 into one of 11 tables [table0 - table10]. Each table has 11 rows, one for each temperature range [0-10], where temp_range
@@ -54,7 +54,7 @@ procedures.
 The ```min-moisture-threshold``` is used to determine whether a plants water cycle is complete or not. 
 
 The ```sum_temp_readings_``` and ```cycle_light_``` are sumnations of all temperature (in degrees F) and light-intensity readings in a given
-cycle. They are used with ```temp_reading_count``` to determins the averages for either at the end of a cycle. 
+cycle. They are used with ```temp_reading_count``` to determine the averages for either at the end of a cycle. 
 
 A ```previous_timestamp_``` is the (current-seconds) taken at the beginning of each cycle, and is means for determining the cycle_time in seconds.
 
@@ -160,8 +160,8 @@ repetition would be shameful.
 
 #4 Let, Set, and Lists: Personal Pair "mapping"
 
-Although a littel redundant with procedural abstraction, the program particularly needing a certain
-degree of correctness in correlating average temperatuer and light-intensity vlaues to their associated database
+Although a little redundant with procedural abstraction, part of the program in particular need for a certain
+degree of correctness was correlating average temperature and light-intensity values to their associated database
 tables and row indexes. It is a simple enough function but is a solid little hunk of code to be rewritten if necessary.
 
 Here is the code which takes a sum of temperture and light-intensities, along with the number of readings, and
@@ -184,7 +184,7 @@ returns a list of two values, the temp_range (table row index) and light_range (
   )
   ``` 
   
-  It really is quite simple, but a few functions need this code, and bundling up the values in a list created by
+  It is plain, but a few functions need this code, and bundling up the values in a list created by
   another function reduced 11 lines of code to one per needed time.
   
   Two quick examples are...
@@ -210,7 +210,43 @@ returns a list of two values, the temp_range (table row index) and light_range (
  ```
  
  It could be deemed  prideful to call importance to this or relate it to "mapping", but the amount it
- cleaned up my code was definately not worthy.
+ cleaned up my code was definately note worthy.
+ 
+ #5 Personal List "Filtering"
+ 
+ Again, not sure if this is really "filtering", but this part of our code made it possible to produce plots for
+ incomplete sets of data...
+ 
+ ```
+(define (table-temperature-times->list lite_i)
+  (let ((partial-list (temp-times->partial-list lite_i))
+        )
+    (let ((avg (average-diff partial-list))
+          )
+      (fill-down avg (fill-front avg partial-list))
+      ))
+  ) 
+  ```
+  
+  What this function does is based on a certain light-intensity (table#), first produces a list of all available
+  avg_times in the database with ```(let ((partial-list (temp-times->partial-list lite_i))```. It then
+  takes the lists "average_difference" in cycle time for all consecutive temp_ranges with cycle_times listed.
+  It uses the two functions in a nested procedure call ``` (fill-down avg (fill-front avg partial-list))```, which takes
+  the partial list, and makes a "compelete" list based upon the average_differene..
+  EX:
+  ```(fill-front '(0 0 5 6 7 0 0 0 0 0))``` 
+  would return 
+  ```'(3 4 5 6 7 0 0 0 0 0)```
+  
+  This list is then passed to ```fill-down``` which fills in all following (zero) indexes with the difference between the
+  previous indexes value and the average_difference.
+  EX: 
+  ```(fill-down '(3 4 5 6 7 0 0 0 0 0)```
+  would return
+  ```'(3 4 5 6 7 8 9 10 11 12)```
 
+
+In total, we really stuck to two core concepts.... Procedural Abstraction and Recursion. But the code was never over
+complicated, and maintained a straight and simple path to completion.
  
  
