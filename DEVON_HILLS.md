@@ -1,12 +1,15 @@
 # The Racket Gardener
 
+
 ## Devon Hills
 ### April 30, 2017
+
 
 # Overview
 This program controls an arduino microcontroller with a few sensors for temperature, light, and soil moisture. Database entries are made, containing information on the watering needs for certain types of plants in certain temperature and lighting conditions. And a user controlled GUI is used to interface with the data, and view plots and analysis of the sensor readings.
 
 **Authorship note:** All of the code described here was written by myself, unless otherwise noted.
+
 
 # Libraries Used
 The code uses four libraries:
@@ -24,6 +27,7 @@ The code uses four libraries:
 * The ```racket/gui``` library is used to create a user interface to interact with the program.
 
 # Key Code Excerpts
+
 
 ## 1. Data Abstraction
 
@@ -131,9 +135,22 @@ and running it through the apply map would produce the list of (x y) coordinates
 This is also my favorite piece of code in my function. Although very simple, it employs a clever use of higher order procedures in order to create the necessary list of values to plot the data. 
 
 
+I also created a 3D graph to show the interaction between light, temperature, and cycle time all at once, although we did not end up using it in the final implementation. The 3D plot takes advantage of map as well, in order to vectorize three lists into (x, y, z) coordinates.
+```racket
+(plot3d-snip (list
+         ;points
+         (points3d
+          (map vector cyclelist cyclelist2 range_list))
+
+         ;lines
+         (lines3d
+          (map vector cyclelist cyclelist2 range_list)))
+```
+
+
 ## 3. Recursion
 
-The core of the program uses a recursive call to the arduino sensors in an infinite loop (done by James). However, recursion is also used for filling in lists. Raw data is taken from the database, averaged together, and recursively output into a new list.
+The core of the program uses a recursive call to the arduino sensors in an infinite loop (done by James). However, recursion is also used for filling in lists. Raw data is taken from the database, averaged together to remove null elements from the raw data, and recursively output into a new list.
 
 ```racket
 (define (fill-front avg times_)
