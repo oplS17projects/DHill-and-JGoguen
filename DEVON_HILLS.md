@@ -50,9 +50,9 @@ The GUI for updating and presenting each cycle of information:
   
  ...
  
- (define plot-avg-c (new editor-canvas%
-               [parent plot-frame]
-               [min-height 200] ))
+(define plot-avg-c (new editor-canvas%
+             [parent plot-frame]
+             [min-height 200] ))
 
 (define plot-avg-pb (new pasteboard%))
 
@@ -154,7 +154,6 @@ The core of the program uses a recursive call to the arduino sensors in an infin
 
 ```racket
 (define (fill-front avg times_)
-  
   (cond
     ;base case
     [(or (null? times_) (= 1 (length times_)))
@@ -174,20 +173,20 @@ The core of the program uses a recursive call to the arduino sensors in an infin
   
   ...
   
-  (define (fill-down avg times_)
+(define (fill-down avg times_)
   (cond
     ;base case
     [(or (null? times_) (= 1 (length times_)))
      '()]
-    
+
     [( = 0 (list-ref times_ 1))
      (cons (car times_) (cons (- (list-ref times_ 0) avg) (fill-down avg  (cddr times_))))]
-    
+
     [else
      (cons (car times_) (fill-down avg (cdr times_)))]
-    
-    )
+
   )
+)
 ```
 
 These functions are called from within James' database code as follows:
