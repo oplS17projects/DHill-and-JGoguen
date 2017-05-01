@@ -13,7 +13,7 @@ into one of 11 tables [table0 - table10]. Each table has 11 rows, one for each t
 given light-intensity, of the cycle_time to average_temperature. 
 
 
-**Authorship note:** All of the code described here was written by myself.
+**Authorship note:** All of the code described here was written by myself unless otherwise noted.
 
 # Libraries Used
 The code uses four libraries: 
