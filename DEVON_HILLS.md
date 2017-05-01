@@ -192,7 +192,8 @@ The core of the program uses a recursive call to the arduino sensors in an infin
 These functions are called from within James' database code as follows:
 
 ```racket
-;; Constructs list from light range [0 -> 10] for temperature_range (temp_range) of AVG_TIME's for each light level 
+;; Constructs list from light range [0 -> 10] for temperature_range (temp_range) 
+;; of AVG_TIME's for each light level 
 (define (table-light-times->list temp_range)
   (let ((partial-list (light-times->partial-list temp_range))
         )
