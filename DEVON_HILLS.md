@@ -131,10 +131,56 @@ This is also my favorite piece of code in my function. Although very simple, it 
 
 ## 3. Recursion
 
-code description 
+The core of the program uses a recursive call to the arduino sensors in an infinite loop (done by James). However, recursion is also used for filling in lists. Raw data is taken from the database, averaged together, and recursively output into a new list.
 
 ```
-insert code here
+(define (fill-front avg times_)
+  
+  (cond
+    ;base case
+    [(or (null? times_) (= 1 (length times_)))
+     '()]
+    
+    [(and (= 0 (list-ref times_ 0)) (not (= 0 (list-ref times_ 1))))
+     (cons (+ avg (list-ref times_ 1)) (cdr times_))]
+    
+    [(and (= 0 (list-ref times_ 0)) (= 0 (list-ref times_ 1)))
+     (fill-front avg (cons 0 (fill-front avg (cdr times_))))]
+    
+    [else
+     times_]
+    
+    )
+  )
+  
+  ...
+  
+  (define (fill-down avg times_)
+  (cond
+    ;base case
+    [(or (null? times_) (= 1 (length times_)))
+     '()]
+    
+    [( = 0 (list-ref times_ 1))
+     (cons (car times_) (cons (- (list-ref times_ 0) avg) (fill-down avg  (cddr times_))))]
+    
+    [else
+     (cons (car times_) (fill-down avg (cdr times_)))]
+    
+    )
+  )
 ```
 
-code description 
+These functions are called from within James' database code as follows:
+
+```
+;; Constructs list from light range [0 -> 10] for temperature_range (temp_range) of AVG_TIME's for each light level 
+(define (table-light-times->list temp_range)
+  (let ((partial-list (light-times->partial-list temp_range))
+        )
+    (let ((avg (average-diff partial-list))
+          )
+      (fill-down avg (fill-front avg partial-list))
+      ))
+  ) 
+```
