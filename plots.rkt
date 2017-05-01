@@ -6,106 +6,14 @@
 (provide (all-defined-out))
 
 ;for plot snips, no new window
-;(plot-new-window? #t)
+(plot-new-window? #t)
 
 
 ;plot functions
 
-#|
-(define (plot-cycle cyclelist xlabel ymax)
-  
-  (let ((col
-         (cond
-           ((equal? "light" xlabel) "yellow")
-           ((equal? "temperature" xlabel) "orange")
-           ((equal? "moisture" xlabel) "blue")
-           (else "red"))))
-    
-    ;plot data
-    (plot (list (axes)
-                
-                ;line
-                (lines (for/list ([i cyclelist]
-                                  [j (in-range (length cyclelist))])
-                         (list j i))
-                       
-                       #:color col
-                       #:width 4)
-              
-                ;points
-                (points (for/list ([i cyclelist]
-                                   [j (in-range (length cyclelist))])
-                          (list j i))
-                      
-                        #:color col
-                        #:line-width 4
-                        #:sym 'odot))
-        
-          ;graph
-          #:x-min 0
-          #:x-max (+ 1 (length cyclelist))
-          #:y-min 0
-          #:y-max ymax
-          #:x-label xlabel
-          #:y-label "average cycle time"
-          #:width 500
-          #:height 500
-          #:bgcolor "gray"
-          #:title (string-append "average cycle time" " vs. " xlabel))
-    )
-  )
-
-
-
-
-(define (plot-cycle-vals cycle_vals y-lab y-max)
-  
-  (let ((col
-         (cond
-           ((equal? "light" y-lab) "yellow")
-           ((equal? "temperature" y-lab) "orange")
-           ((equal? "moisture" y-lab) "blue")
-           (else "red"))))
-  
-    ;plot data
-    (plot (list (axes)
-              
-                ;line
-                (lines (for/list ([i cycle_vals] [j (in-range (length cycle_vals))])
-                         (list j i))
-
-                       #:color col
-                       #:width 4)
-
-                ;points
-                (points (for/list ([i cycle_vals] [j (in-range (length cycle_vals))])
-                          (list j i))
-
-                        #:color col
-                        #:line-width 4
-                        #:sym 'odot))
-
-          ;graph
-          #:x-min 0
-          #:x-max (+ 1 (length cycle_vals))
-          #:y-min 0
-          #:y-max y-max
-          #:x-label "time"
-          #:y-label y-lab
-          #:width 500
-          #:height 500
-          #:bgcolor "gray"
-          #:title (string-append y-lab " vs. " "time"))
-    )
-  )
-|#
-
-
-
 ;; FOR PLOT SNIPS:
 
 (define (plot-cycle cyclelist xlabel ymax)
-  
   (let ((col
          (cond
            ((equal? "light" xlabel) "yellow")
@@ -113,26 +21,24 @@
            ((equal? "moisture" xlabel) "blue")
            (else "red"))))
     
+    (let ((range_list
+           (build-list (length cyclelist) values)))
+      
     ;plot data
     (plot-snip (list (axes) ;snip
-                
+                     
                 ;line
-                (lines (for/list ([i cyclelist]
-                                  [j (in-range (length cyclelist))])
-                         (list j i))
+                (lines (apply map list (list range_list cyclelist))
                        
                        #:color col
                        #:width 4)
-              
+                
                 ;points
-                (points (for/list ([i cyclelist]
-                                   [j (in-range (length cyclelist))])
-                          (list j i))
+                (points (apply map list (list range_list cyclelist))
                       
                         #:color col
                         #:line-width 4
                         #:sym 'odot))
-        
           ;graph
           #:x-min 0
           #:x-max (+ 1 (length cyclelist))
@@ -143,7 +49,7 @@
           #:width 500
           #:height 500
           #:title (string-append "average cycle time" " vs. " xlabel))
-    )
+    ))
   )
 
 
@@ -157,20 +63,21 @@
            ((equal? "temperature" y-lab) "orange")
            ((equal? "moisture" y-lab) "blue")
            (else "red"))))
+    
+    (let ((range_list
+           (build-list (length cycle_vals) values)))
   
     ;plot data
     (plot-snip (list (axes) ;snip
               
                 ;line
-                (lines (for/list ([i cycle_vals] [j (in-range (length cycle_vals))])
-                         (list j i))
+                (lines (apply map list (list range_list cycle_vals))
 
                        #:color col
                        #:width 4)
 
                 ;points
-                (points (for/list ([i cycle_vals] [j (in-range (length cycle_vals))])
-                          (list j i))
+                (points (apply map list (list range_list cycle_vals))
 
                         #:color col
                         #:line-width 4
@@ -186,24 +93,24 @@
           #:width 500
           #:height 500
           #:title (string-append y-lab " vs. " "time"))
-    )
+    ))
   )
     
 
 
 
 ;;3D test function
-(define (plot-cycle-3d cyclelist cyclelist2 x-lab y-lab xmax ymax)
+(define (my-3d-plot cyclelist cyclelist2 x-lab y-lab xmax ymax)
 
-  ;can modify this
-  (let ((time '(1 2 3 4 5 6 7 8 9 10 11)))
+  (let ((range_list
+         (build-list (length cyclelist) values)))
 
     ;3d plot set up
-    (plot3d (list
+    (plot3d-snip (list
 
              ;points
              (points3d
-              (map vector cyclelist cyclelist2 time)
+              (map vector cyclelist cyclelist2 range_list)
               
               #:sym 'odot
               #:line-width 3
@@ -211,7 +118,7 @@
 
              ;lines
              (lines3d
-              (map vector cyclelist cyclelist2 time)
+              (map vector cyclelist cyclelist2 range_list)
               
               #:width 4
               #:color "orange")
@@ -221,13 +128,31 @@
             #:altitude 25
             #:x-label x-lab
             #:y-label y-lab
+            #:z-label "time"
             #:x-max xmax
             #:y-max ymax)
     )
   )
 
 
+;;;;;;;;;;;;;;TEST
+#|
+(plot-snip (list (axes) ;snip
+                ;points
+                (points (apply map list '((10 20 30) (40 50 60)))
+                      
+                        #:sym 'odot))
+          ;graph
+          #:x-min 0
+          #:x-max 100
+          #:y-min 0
+          #:y-max 100
+          #:width 500
+          #:height 500
+          )
+|#
 
+;;;;;;;;;;;;;;
 
 
 
@@ -255,16 +180,22 @@
 ;fill functions
 
 (define (fill-front avg times_)
+  
   (cond
-    ((or (null? times_) (= 1 (length times_)))
-     '())
-    ((and (= 0 (list-ref times_ 0)) (not (= 0 (list-ref times_ 1))))
-     (cons (+ avg (list-ref times_ 1)) (cdr times_)))
-    ((and (= 0 (list-ref times_ 0)) (= 0 (list-ref times_ 1)))
-     (fill-front avg (cons 0 (fill-front avg (cdr times_)))))
-    (else
-     times_)
-     )
+    ;base case
+    [(or (null? times_) (= 1 (length times_)))
+     '()]
+    
+    [(and (= 0 (list-ref times_ 0)) (not (= 0 (list-ref times_ 1))))
+     (cons (+ avg (list-ref times_ 1)) (cdr times_))]
+    
+    [(and (= 0 (list-ref times_ 0)) (= 0 (list-ref times_ 1)))
+     (fill-front avg (cons 0 (fill-front avg (cdr times_))))]
+    
+    [else
+     times_]
+    
+    )
   )
 
 
@@ -272,8 +203,10 @@
   (cond
     ((or (null? times_) (= 1 (length times_)))
      '())
+    
     (( = 0 (list-ref times_ 1))
      (cons (car times_) (cons (- (list-ref times_ 0) avg) (fill-down avg  (cddr times_)))))
+    
     (else
      (cons (car times_) (fill-down avg (cdr times_))))
     )
@@ -285,8 +218,7 @@
 ;; convert to decimal
 (define (decimal_list lst)
   (map exact->inexact
-       lst
-  ))
+       lst))
 
 
 
@@ -313,6 +245,8 @@
 (plot-cycle-vals sample_output "moisture" 110)
 
 ;3d sample 
-(plot-cycle-3d sample_output (reverse sample_output) "light" "temperature" 110 110)
+(my-3d-plot sample_output (reverse sample_output) "light" "temperature" 110 110)
+
+
 |#
 
